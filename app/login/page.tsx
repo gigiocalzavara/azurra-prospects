@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/supabase/browser";
 
@@ -19,7 +20,9 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setMessage("Nao foi possivel entrar. Confira o e-mail e a senha.");
+      setMessage(error.message === "Invalid login credentials"
+        ? "E-mail ou senha incorretos. Se você recebeu um convite e ainda não criou a senha, use ‘Esqueci minha senha’."
+        : "Não foi possível entrar agora. Tente novamente em instantes.");
       return;
     }
     router.push("/admin");
@@ -37,6 +40,7 @@ export default function LoginPage() {
           {message && <div className="form-message error">{message}</div>}
           <button className="primary-button" disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
         </form>
+        <p><Link href="/forgot-password">Esqueci minha senha</Link></p>
       </section>
     </main>
   );

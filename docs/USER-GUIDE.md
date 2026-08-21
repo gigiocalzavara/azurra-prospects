@@ -6,6 +6,8 @@
 2. Superadmins sao direcionados para `/admin`.
 3. Use **Sair** para encerrar a sessao no navegador.
 
+Se o convite inicial nao tiver permitido criar uma senha, use **Esqueci minha senha** na tela de login. Informe o e-mail cadastrado, abra o link recebido e defina uma senha com pelo menos 8 caracteres. Links expirados devem ser solicitados novamente.
+
 ## Criar uma organização como superadmin
 
 1. Abra **Organizações** em `/admin`.

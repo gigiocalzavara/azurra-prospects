@@ -30,6 +30,8 @@ Na fundacao inicial, os servicos de Clock Engine e worker ficam desativados no P
 
 O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.
 
+O fluxo de recuperacao usa PKCE: `/forgot-password` solicita o e-mail, `/auth/callback` troca o `code` por uma sessao e `/reset-password` atualiza a senha. O redirect `https://prospects.azurratech.com.br/auth/callback` deve permanecer autorizado no Supabase Auth.
+
 ## Convencoes de API
 
 - Base: `/api/v1`.
