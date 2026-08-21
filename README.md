@@ -9,6 +9,7 @@ Sistema independente de prospeccao da Azurra Tech, integrado ao Azurra Leads por
 - Rule Registry versionado para regras operacionais e de conformidade.
 - Clock Engine e workers separados da aplicacao web.
 - Livro-razao de creditos append-only e idempotente.
+- Superadmin global com interface para gestao de organizacoes.
 - Docker, Portainer e Traefik para producao.
 
 ## Desenvolvimento

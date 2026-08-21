@@ -1,8 +1,23 @@
 # Manual de uso
 
+## Acesso
+
+1. Acesse `/login` e informe o e-mail convidado e sua senha.
+2. Superadmins sao direcionados para `/admin`.
+3. Use **Sair** para encerrar a sessao no navegador.
+
+## Criar uma organização como superadmin
+
+1. Abra **Organizações** em `/admin`.
+2. Informe o nome comercial.
+3. Informe um identificador em letras minusculas, numeros e hifens, como `empresa-exemplo`.
+4. Clique em **Criar organização**.
+
+A nova organização e criada isoladamente e o superadmin que realizou a operacao se torna seu owner inicial. Identificadores nao podem ser repetidos.
+
 ## Estado atual
 
-O produto esta em fundacao tecnica. A tela inicial e o endpoint de saude estao disponiveis, mas nenhuma coleta real esta habilitada.
+O produto esta em fundacao tecnica. Autenticacao e administracao inicial de organizacoes estao disponiveis, mas nenhuma coleta real esta habilitada.
 
 ## Fluxo planejado para Instagram
 

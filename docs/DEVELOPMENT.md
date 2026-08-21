@@ -12,6 +12,11 @@ Azurra Prospects e Azurra Leads sao sistemas independentes. O Prospects descobre
 - `rule_registry`: regras imutaveis por versao, com estados draft, shadow, active e retired.
 - `credit_ledger`: lancamentos append-only; nao existe atualizacao direta de saldo.
 - `audit_events`: trilha de decisoes e operacoes relevantes.
+- `platform_admins`: concessoes globais de superadmin, separadas dos papeis de cada organizacao.
+
+## Administracao global
+
+Superadmins usam `/admin`. A interface chama somente funcoes RPC `security definer` que validam `auth.uid()` em `platform_admins`. O cliente nunca recebe a service role. Ao criar uma organizacao, a operacao tambem inclui o superadmin como `owner` e grava um evento de auditoria.
 
 ## Shadow mode
 

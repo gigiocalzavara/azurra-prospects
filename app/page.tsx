@@ -12,6 +12,7 @@ export default function Home() {
         <h1>Azurra Prospects</h1>
         <p>Encontre oportunidades, organize sinais públicos e envie os prospects certos para o Azurra Leads.</p>
         <div className="status"><span /> Base técnica em construção</div>
+        <p><a className="primary-button inline-button" href="/login">Acessar plataforma</a></p>
       </section>
       <section className="grid" aria-label="Módulos iniciais">
         {modules.map(([title, description]) => (
