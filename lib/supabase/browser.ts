@@ -9,6 +9,6 @@ export function createBrowserClient() {
   }
 
   return createClient(url, anonKey, {
-    auth: { flowType: "pkce" },
+    auth: { flowType: "implicit", detectSessionInUrl: true },
   });
 }
