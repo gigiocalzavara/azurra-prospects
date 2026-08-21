@@ -16,9 +16,20 @@ export default function ForgotPasswordPage() {
     const redirectTo = window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     setLoading(false);
-    setMessage(error
-      ? "Não foi possível enviar o link agora. Tente novamente em instantes."
-      : "Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.");
+    if (!error) {
+      setMessage("Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.");
+      return;
+    }
+
+    const errorCode = error.code || "unknown_error";
+    const messages: Record<string, string> = {
+      over_email_send_rate_limit: "O limite temporário de e-mails do Supabase foi atingido. Aguarde e tente novamente mais tarde.",
+      email_address_invalid: "O endereço de e-mail informado não é válido.",
+      email_not_confirmed: "Este e-mail ainda não foi confirmado no Supabase.",
+      request_timeout: "O Supabase demorou para responder. Tente novamente em instantes.",
+      unexpected_failure: "O serviço de e-mail do Supabase não está configurado corretamente.",
+    };
+    setMessage(`${messages[errorCode] || "O Supabase recusou o envio do link."} Código: ${errorCode}.`);
   }
 
   return (
