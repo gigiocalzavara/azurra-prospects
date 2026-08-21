@@ -30,7 +30,10 @@ export default function AdminPage() {
     setMessage("");
   }, [router, supabase]);
 
-  useEffect(() => { void loadOrganizations(); }, [loadOrganizations]);
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => void loadOrganizations(), 0);
+    return () => window.clearTimeout(loadTimer);
+  }, [loadOrganizations]);
 
   async function createOrganization(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

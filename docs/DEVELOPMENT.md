@@ -18,6 +18,8 @@ Azurra Prospects e Azurra Leads sao sistemas independentes. O Prospects descobre
 
 Superadmins usam `/admin`. A interface chama somente funcoes RPC `security definer` que validam `auth.uid()` em `platform_admins`. O cliente nunca recebe a service role. Ao criar uma organizacao, a operacao tambem inclui o superadmin como `owner` e grava um evento de auditoria.
 
+O carregamento inicial da area administrativa e agendado fora do corpo sincrono do efeito React, evitando atualizacoes em cascata e mantendo compatibilidade com as regras do React 19.
+
 ## Shadow mode
 
 `CLOCK_ENGINE_MODE=shadow` e o padrao. Nesse modo, o motor calcula o que faria, registra a decisao e nao realiza coleta externa, consumo definitivo de credito ou envio ao Leads. A mudanca para `active` exige validacao operacional e regra ativa correspondente.
