@@ -32,6 +32,8 @@ O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/mi
 
 O cliente do navegador declara `flowType: pkce`. No fluxo de recuperacao, `/forgot-password` solicita o e-mail usando a Site URL ja autorizada; a pagina inicial troca o `code` por uma sessao e encaminha para `/reset-password`. O callback em `/auth/callback` continua disponivel para futuros fluxos autenticados com destino controlado.
 
+Falhas de recuperacao sao traduzidas por `error.code` para mensagens operacionais, mantendo o codigo visivel para suporte sem expor payloads, chaves ou detalhes internos.
+
 ## Convencoes de API
 
 - Base: `/api/v1`.
