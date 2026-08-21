@@ -43,3 +43,5 @@ O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/mi
 Uma mudanca so esta pronta quando possui validacao automatizada aplicavel e atualiza tanto a documentacao tecnica quanto a documentacao de uso, quando houver impacto para o usuario.
 
 O workflow `.github/workflows/ci.yml` executa lint, typecheck e build em pushes e pull requests direcionados a `main`. Enquanto o primeiro lockfile ainda nao foi gerado, a instalacao usa `npm install` sem cache. Os valores usados no build sao placeholders e nao concedem acesso ao Supabase.
+
+O workflow `.github/workflows/publish-image.yml` constroi a imagem de producao e publica as tags `latest` e `sha-*` no GitHub Container Registry. O Portainer consome `latest`; a tag de commit permite rollback deterministico.

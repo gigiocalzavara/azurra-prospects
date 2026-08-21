@@ -7,7 +7,7 @@ Dominio oficial: `prospects.azurratech.com.br`.
 - Portainer conectado ao Docker Swarm.
 - Traefik na rede externa `network_public`.
 - Certresolver `letsencryptresolver` configurado.
-- Imagem publicada em `ghcr.io/gigiocalzavara/azurra-prospects`.
+- Imagem publicada automaticamente em `ghcr.io/gigiocalzavara/azurra-prospects` pelo workflow `publish-image.yml`.
 
 ## Implantacao
 
@@ -17,6 +17,22 @@ Dominio oficial: `prospects.azurratech.com.br`.
 4. Publique a stack e aguarde o healthcheck.
 5. Teste `https://prospects.azurratech.com.br/api/system/health`.
 6. `clock-engine` e `worker` comecam com zero replicas. Eles so devem ser escalados depois que seus executores forem implementados e validados em shadow mode.
+
+## Acesso ao GHCR
+
+Se o pacote estiver privado, cadastre `ghcr.io` em **Registries** no Portainer usando o usuario GitHub e um token com permissao `read:packages`. Nao coloque esse token no arquivo da stack. Como alternativa, torne o pacote publico depois da primeira publicacao.
+
+## Variaveis obrigatorias da stack
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `CRON_SECRET`
+- `CLOCK_ENGINE_MODE=shadow`
+- `TRAEFIK_NETWORK=network_public`
+- `AZURRA_PROSPECTS_IMAGE=ghcr.io/gigiocalzavara/azurra-prospects:latest`
+
+As variaveis `AZURRA_LEADS_API_URL` e `AZURRA_LEADS_API_TOKEN` podem ficar vazias ate a integracao entre os produtos ser habilitada.
 
 ## Rollback
 
