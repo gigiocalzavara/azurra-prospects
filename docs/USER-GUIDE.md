@@ -8,6 +8,8 @@
 
 Se o convite inicial nao tiver permitido criar uma senha, use **Esqueci minha senha** na tela de login. Informe o e-mail cadastrado, abra o link recebido e defina uma senha com pelo menos 8 caracteres. Links expirados devem ser solicitados novamente.
 
+Se o Supabase recusar o envio, a tela informa um codigo de diagnostico. `over_email_send_rate_limit` indica bloqueio temporario por excesso de tentativas; `unexpected_failure` indica configuracao incompleta do servico de e-mail.
+
 ## Criar uma organização como superadmin
 
 1. Abra **Organizações** em `/admin`.
