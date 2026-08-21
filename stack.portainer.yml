@@ -1,0 +1,51 @@
+version: "3.8"
+services:
+  app:
+    image: ${AZURRA_PROSPECTS_IMAGE:-ghcr.io/gigiocalzavara/azurra-prospects:latest}
+    environment: &app_environment
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://prospects.azurratech.com.br}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      CRON_SECRET: ${CRON_SECRET}
+      AZURRA_LEADS_API_URL: ${AZURRA_LEADS_API_URL:-}
+      AZURRA_LEADS_API_TOKEN: ${AZURRA_LEADS_API_TOKEN:-}
+      CLOCK_ENGINE_MODE: ${CLOCK_ENGINE_MODE:-shadow}
+      PROCESS_ROLE: web
+    networks: [traefik_public]
+    deploy:
+      replicas: 1
+      restart_policy: { condition: on-failure }
+      update_config: { order: start-first, failure_action: rollback }
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_NETWORK:-network_public}
+        - traefik.http.services.azurra-prospects.loadbalancer.server.port=3000
+        - traefik.http.routers.azurra-prospects.rule=Host(`prospects.azurratech.com.br`)
+        - traefik.http.routers.azurra-prospects.entrypoints=websecure
+        - traefik.http.routers.azurra-prospects.tls=true
+        - traefik.http.routers.azurra-prospects.tls.certresolver=letsencryptresolver
+  clock-engine:
+    image: ${AZURRA_PROSPECTS_IMAGE:-ghcr.io/gigiocalzavara/azurra-prospects:latest}
+    environment:
+      <<: *app_environment
+      PROCESS_ROLE: clock-engine
+    command: ["node", "server.js"]
+    networks: [traefik_public]
+    deploy:
+      replicas: 0
+      restart_policy: { condition: on-failure }
+  worker:
+    image: ${AZURRA_PROSPECTS_IMAGE:-ghcr.io/gigiocalzavara/azurra-prospects:latest}
+    environment:
+      <<: *app_environment
+      PROCESS_ROLE: worker
+    command: ["node", "server.js"]
+    networks: [traefik_public]
+    deploy:
+      replicas: 0
+      restart_policy: { condition: on-failure }
+networks:
+  traefik_public:
+    external: true
+    name: ${TRAEFIK_NETWORK:-network_public}

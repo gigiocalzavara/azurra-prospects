@@ -1,0 +1,16 @@
+project_id = "laayrkwqvdwucwaipnma"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "https://prospects.azurratech.com.br"
+additional_redirect_urls = ["http://localhost:3000"]

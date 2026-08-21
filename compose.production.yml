@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    image: azurra-prospects:latest
+    restart: unless-stopped
+    env_file: .env.production
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-network_public}
+      - traefik.http.services.azurra-prospects.loadbalancer.server.port=3000
+      - traefik.http.routers.azurra-prospects.rule=Host(`prospects.azurratech.com.br`)
+      - traefik.http.routers.azurra-prospects.entrypoints=websecure
+      - traefik.http.routers.azurra-prospects.tls=true
+      - traefik.http.routers.azurra-prospects.tls.certresolver=letsencryptresolver
+  clock-engine:
+    image: azurra-prospects:latest
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      PROCESS_ROLE: clock-engine
+      CLOCK_ENGINE_MODE: ${CLOCK_ENGINE_MODE:-shadow}
+    command: ["node", "server.js"]
+    networks: [traefik_public]
+    depends_on: [app]
+    profiles: ["workers"]
+  worker:
+    image: azurra-prospects:latest
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      PROCESS_ROLE: worker
+      CLOCK_ENGINE_MODE: ${CLOCK_ENGINE_MODE:-shadow}
+    command: ["node", "server.js"]
+    networks: [traefik_public]
+    depends_on: [app]
+    profiles: ["workers"]
+networks:
+  traefik_public:
+    external: true
+    name: ${TRAEFIK_NETWORK:-network_public}

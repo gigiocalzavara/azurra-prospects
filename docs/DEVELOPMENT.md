@@ -1,0 +1,38 @@
+# Desenvolvimento e arquitetura
+
+## Limites do sistema
+
+Azurra Prospects e Azurra Leads sao sistemas independentes. O Prospects descobre e qualifica oportunidades; o Leads recebe apenas registros explicitamente enviados por uma integracao autenticada e idempotente.
+
+## Componentes
+
+- `app`: painel, API e healthcheck.
+- `clock-engine`: seleciona tarefas vencidas e registra a decisao de execucao.
+- `worker`: processa tarefas autorizadas pelo Rule Registry.
+- `rule_registry`: regras imutaveis por versao, com estados draft, shadow, active e retired.
+- `credit_ledger`: lancamentos append-only; nao existe atualizacao direta de saldo.
+- `audit_events`: trilha de decisoes e operacoes relevantes.
+
+## Shadow mode
+
+`CLOCK_ENGINE_MODE=shadow` e o padrao. Nesse modo, o motor calcula o que faria, registra a decisao e nao realiza coleta externa, consumo definitivo de credito ou envio ao Leads. A mudanca para `active` exige validacao operacional e regra ativa correspondente.
+
+Na fundacao inicial, os servicos de Clock Engine e worker ficam desativados no Portainer (`replicas: 0`). A imagem e as variaveis ja estao separadas, mas eles nao devem ser escalados antes da implementacao dos respectivos executores.
+
+## Banco e seguranca
+
+O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.
+
+## Convencoes de API
+
+- Base: `/api/v1`.
+- JSON como formato padrao.
+- Operacoes mutaveis devem aceitar chave de idempotencia.
+- Erros devem incluir codigo estavel, mensagem e `requestId`.
+- Integracao Leads sera autenticada servidor a servidor.
+
+## Definicao de pronto
+
+Uma mudanca so esta pronta quando possui validacao automatizada aplicavel e atualiza tanto a documentacao tecnica quanto a documentacao de uso, quando houver impacto para o usuario.
+
+O workflow `.github/workflows/ci.yml` executa lint, typecheck e build em pushes e pull requests direcionados a `main`. Os valores usados no build sao placeholders e nao concedem acesso ao Supabase.
