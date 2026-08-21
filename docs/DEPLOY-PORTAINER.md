@@ -34,6 +34,8 @@ Se o pacote estiver privado, cadastre `ghcr.io` em **Registries** no Portainer u
 
 As variaveis `AZURRA_LEADS_API_URL` e `AZURRA_LEADS_API_TOKEN` podem ficar vazias ate a integracao entre os produtos ser habilitada.
 
+`NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` tambem sao fornecidas ao build no GitHub Actions. Alteracoes nesses valores exigem uma nova publicacao da imagem; defini-las apenas no runtime nao altera o bundle do frontend.
+
 ## Rollback
 
 A atualizacao do servico web usa `start-first` e `failure_action: rollback`. Preserve a tag anterior da imagem para rollback manual dos workers, se necessario.

@@ -45,3 +45,5 @@ Uma mudanca so esta pronta quando possui validacao automatizada aplicavel e atua
 O workflow `.github/workflows/ci.yml` executa lint, typecheck e build em pushes e pull requests direcionados a `main`. Enquanto o primeiro lockfile ainda nao foi gerado, a instalacao usa `npm install` sem cache. Os valores usados no build sao placeholders e nao concedem acesso ao Supabase.
 
 O workflow `.github/workflows/publish-image.yml` constroi a imagem de producao e publica as tags `latest` e `sha-*` no GitHub Container Registry. O Portainer consome `latest`; a tag de commit permite rollback deterministico.
+
+As configuracoes publicas do Supabase sao injetadas como build args porque variaveis `NEXT_PUBLIC_*` sao incorporadas ao bundle do navegador pelo Next.js. A URL usa GitHub Actions Variable e a chave publicavel usa GitHub Actions Secret. Nenhuma service role participa do build.
