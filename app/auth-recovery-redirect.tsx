@@ -10,11 +10,17 @@ export function AuthRecoveryRedirect() {
 
   useEffect(() => {
     const code = params.get("code");
-    if (!code) return;
     const supabase = createBrowserClient();
-    void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      router.replace(error ? "/forgot-password" : "/reset-password");
+    if (code) {
+      void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        router.replace(error ? "/forgot-password" : "/reset-password");
+      });
+    }
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) router.replace("/reset-password");
     });
+    return () => data.subscription.unsubscribe();
   }, [params, router]);
 
   return null;

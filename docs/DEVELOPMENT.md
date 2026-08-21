@@ -30,7 +30,7 @@ Na fundacao inicial, os servicos de Clock Engine e worker ficam desativados no P
 
 O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.
 
-O cliente do navegador declara `flowType: pkce`. No fluxo de recuperacao, `/forgot-password` solicita o e-mail usando a Site URL ja autorizada; a pagina inicial troca o `code` por uma sessao e encaminha para `/reset-password`. O callback em `/auth/callback` continua disponivel para futuros fluxos autenticados com destino controlado.
+O cliente do navegador usa fluxo `implicit` com deteccao de sessao na URL. Isso permite solicitar a recuperacao em um dispositivo e abrir o link em outro, sem depender de um verifier armazenado localmente. `/forgot-password` solicita o e-mail usando a Site URL autorizada; a pagina inicial reconhece o evento `PASSWORD_RECOVERY` e encaminha para `/reset-password`. O callback em `/auth/callback` permanece como compatibilidade para links com `code`.
 
 Falhas de recuperacao sao traduzidas por `error.code` para mensagens operacionais, mantendo o codigo visivel para suporte sem expor payloads, chaves ou detalhes internos.
 
