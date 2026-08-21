@@ -8,5 +8,7 @@ export function createBrowserClient() {
     throw new Error("Supabase nao configurado.");
   }
 
-  return createClient(url, anonKey);
+  return createClient(url, anonKey, {
+    auth: { flowType: "pkce" },
+  });
 }
