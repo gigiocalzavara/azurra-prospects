@@ -7,6 +7,7 @@ const modules = [
 export default function Home() {
   return (
     <main>
+      <Suspense fallback={null}><AuthRecoveryRedirect /></Suspense>
       <section className="hero">
         <div className="eyebrow">AZURRA TECH</div>
         <h1>Azurra Prospects</h1>
@@ -25,3 +26,5 @@ export default function Home() {
     </main>
   );
 }
+import { Suspense } from "react";
+import { AuthRecoveryRedirect } from "./auth-recovery-redirect";
