@@ -15,15 +15,8 @@ type InstagramInput = {
   result_limit?: number;
   profile_scope?: string;
 };
-type InstagramOutput = {
-  decision?: string;
-  provider?: string;
-  estimated_results?: number;
-  estimated_credits?: number;
-  credit_effect?: number;
-  executed_at?: string;
-};
-type ProspectJob = { id: string; status: string; input: InstagramInput; output: InstagramOutput | null; shadow_mode: boolean; created_at: string };
+type ProspectJob = { id: string; status: string; input: InstagramInput; shadow_mode: boolean; created_at: string };
+type ApifyStatus = { configured: boolean; connected: boolean; searchActor: string; error?: string };
 
 export default function InstagramPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -39,7 +32,7 @@ export default function InstagramPage() {
   const [profileScope, setProfileScope] = useState("public_only");
   const [message, setMessage] = useState("Carregando...");
   const [creating, setCreating] = useState(false);
-  const [runningJobId, setRunningJobId] = useState<string | null>(null);
+  const [apifyStatus, setApifyStatus] = useState<ApifyStatus | null>(null);
 
   const loadModule = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -61,7 +54,7 @@ export default function InstagramPage() {
 
     const { data: jobData, error: jobError } = await supabase
       .from("prospect_jobs")
-      .select("id,status,input,output,shadow_mode,created_at")
+      .select("id,status,input,shadow_mode,created_at")
       .eq("organization_id", selectedOrganization.id)
       .eq("platform", "instagram")
       .order("created_at", { ascending: false })
@@ -76,6 +69,15 @@ export default function InstagramPage() {
     const timer = window.setTimeout(() => void loadModule(), 0);
     return () => window.clearTimeout(timer);
   }, [loadModule]);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/system/integrations/apify", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((status: ApifyStatus) => { if (active) setApifyStatus(status); })
+      .catch(() => { if (active) setApifyStatus({ configured: false, connected: false, searchActor: "", error: "unavailable" }); });
+    return () => { active = false; };
+  }, []);
 
   async function createSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,31 +107,21 @@ export default function InstagramPage() {
     await loadModule();
   }
 
-  async function runShadow(jobId: string) {
-    setRunningJobId(jobId);
-    setMessage("");
-    const { error } = await supabase.rpc("run_instagram_shadow_job", { target_job_id: jobId });
-    setRunningJobId(null);
-    if (error) {
-      setMessage(error.code === "PGRST202" ? "A migration do executor ainda precisa ser aplicada no Supabase." : "Não foi possível simular a execução.");
-      return;
-    }
-    setMessage("Execução simulada e auditada. Nenhum dado externo foi coletado e nenhum crédito foi consumido.");
-    await loadModule();
-  }
-
   const organizationHref = `/organizations/${slug}` as Route;
 
   return (
     <main className="workspace-shell">
       <div className="workspace-topbar">
         <Link className="workspace-back" href={organizationHref}>← {organization?.name ?? "Organização"}</Link>
-        <div className="eyebrow">INSTAGRAM · SHADOW MODE</div>
+        <div className="integration-status">
+          <span className={apifyStatus?.connected ? "integration-dot connected" : "integration-dot"} />
+          <span>{apifyStatus?.connected ? "APIFY CONECTADA" : "APIFY NÃO CONECTADA"}</span>
+        </div>
       </div>
 
       <header className="workspace-hero">
         <h1>Nova pesquisa</h1>
-        <p>Defina o público que deseja encontrar. Nesta etapa, a pesquisa é registrada e auditada, mas nenhuma coleta externa é executada.</p>
+        <p>Defina o público que deseja encontrar. Nesta etapa, a pesquisa é registrada e auditada em shadow mode, sem iniciar uma execução paga.</p>
       </header>
 
       <section className="instagram-layout">
@@ -156,8 +148,6 @@ export default function InstagramPage() {
             <article className="job-card" key={job.id}>
               <h3>{job.input.query || "Pesquisa sem título"}</h3>
               <div className="job-meta"><span>{job.status}</span><span>{job.shadow_mode ? "shadow" : "active"}</span><span>{job.input.result_limit ?? 0} resultados</span></div>
-              {job.output && <div className="execution-summary"><strong>Plano validado</strong><span>Provedor: {job.output.provider ?? "pendente"}</span><span>Créditos consumidos: {job.output.credit_effect ?? 0}</span></div>}
-              {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular execução"}</button>}
             </article>
           ))}
         </aside>
