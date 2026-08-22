@@ -34,11 +34,13 @@ O modulo `/organizations/[slug]/instagram` registra pesquisas por nicho, localiz
 
 O escopo `public_metadata` permite apenas metadados visiveis publicamente em perfis privados. A regra proibe acesso a conteudo privado, contorno de autenticacao ou qualquer tecnica destinada a superar restricoes do Instagram.
 
+A migration `20260822000200_instagram_shadow_executor.sql` adiciona `prospect_jobs.output`, a tabela normalizada `prospect_results` e a RPC `run_instagram_shadow_job`. O executor shadow bloqueia trabalhos de outro canal ou modo, exige status `queued`, valida a versao da regra e grava o plano completo em `output`. A execucao termina como `completed`, produz auditoria e mantem `credit_effect=0`. O provedor fica identificado como `adapter_pending` ate a escolha e configuracao de uma fonte externa autorizada.
+
 ## Integracao Apify
 
 O token da Apify existe somente no servidor como `APIFY_API_TOKEN` e nunca recebe prefixo `NEXT_PUBLIC_`. O endpoint `/api/system/integrations/apify` valida a credencial contra `/v2/users/me` e retorna apenas estado e identificadores dos Actors, sem expor token ou dados da conta. O Actor de descoberta padrao e `apify~instagram-search-scraper`; o enriquecimento posterior usa `apify~instagram-profile-scraper`. Ambos podem ser substituidos pelas variaveis `APIFY_INSTAGRAM_SEARCH_ACTOR` e `APIFY_INSTAGRAM_PROFILE_ACTOR`.
 
-O modulo exibe a conectividade, mas shadow mode continua impedindo execucoes pagas. A ativacao exige executor, persistencia normalizada de resultados, reserva de creditos e promocao explicita da regra no Rule Registry.
+O modulo exibe a conectividade, mas o executor shadow continua impedindo execucoes pagas. A ativacao real exige o adaptador Apify, reserva de creditos e promocao explicita da regra no Rule Registry.
 
 ## Banco e seguranca
 
