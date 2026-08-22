@@ -24,6 +24,7 @@ type InstagramOutput = {
   executed_at?: string;
 };
 type ProspectJob = { id: string; status: string; input: InstagramInput; output: InstagramOutput | null; shadow_mode: boolean; created_at: string };
+type ApifyStatus = { configured: boolean; connected: boolean; searchActor: string; error?: string };
 
 export default function InstagramPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,6 +41,7 @@ export default function InstagramPage() {
   const [message, setMessage] = useState("Carregando...");
   const [creating, setCreating] = useState(false);
   const [runningJobId, setRunningJobId] = useState<string | null>(null);
+  const [apifyStatus, setApifyStatus] = useState<ApifyStatus | null>(null);
 
   const loadModule = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -76,6 +78,15 @@ export default function InstagramPage() {
     const timer = window.setTimeout(() => void loadModule(), 0);
     return () => window.clearTimeout(timer);
   }, [loadModule]);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/system/integrations/apify", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((status: ApifyStatus) => { if (active) setApifyStatus(status); })
+      .catch(() => { if (active) setApifyStatus({ configured: false, connected: false, searchActor: "", error: "unavailable" }); });
+    return () => { active = false; };
+  }, []);
 
   async function createSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,12 +135,15 @@ export default function InstagramPage() {
     <main className="workspace-shell">
       <div className="workspace-topbar">
         <Link className="workspace-back" href={organizationHref}>← {organization?.name ?? "Organização"}</Link>
-        <div className="eyebrow">INSTAGRAM · SHADOW MODE</div>
+        <div className="integration-status">
+          <span className={apifyStatus?.connected ? "integration-dot connected" : "integration-dot"} />
+          <span>{apifyStatus?.connected ? "APIFY CONECTADA" : "APIFY NÃO CONECTADA"}</span>
+        </div>
       </div>
 
       <header className="workspace-hero">
         <h1>Nova pesquisa</h1>
-        <p>Defina o público que deseja encontrar. Nesta etapa, a pesquisa é registrada e auditada, mas nenhuma coleta externa é executada.</p>
+        <p>Defina o público que deseja encontrar. Nesta etapa, a pesquisa é registrada e auditada em shadow mode, sem iniciar uma execução paga.</p>
       </header>
 
       <section className="instagram-layout">

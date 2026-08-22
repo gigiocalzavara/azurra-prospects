@@ -40,6 +40,8 @@ O primeiro passo ja esta disponivel: abra a organizacao, clique em **Instagram**
 
 Uma pesquisa com status `queued` pode ser aberta pelo botao **Simular execucao**. A simulacao valida a regra operacional, cria o plano de processamento e conclui o trabalho sem consultar fontes externas. O historico passa a mostrar o provedor pendente e confirma que zero credito foi consumido.
 
+No topo do modulo, **Apify conectada** confirma que a credencial do provedor foi validada pelo servidor. Esse indicador nao significa que uma coleta foi iniciada: enquanto o modulo estiver em shadow mode, criar uma pesquisa apenas registra os criterios.
+
 ## Perfis privados
 
 O sistema nao contorna privacidade nem acessa conteudo restrito. Um perfil privado pode ser registrado apenas com os metadados publicamente visiveis e nao deve ser tratado como fonte de conteudo privado.

@@ -10,6 +10,9 @@ services:
       CRON_SECRET: ${CRON_SECRET}
       AZURRA_LEADS_API_URL: ${AZURRA_LEADS_API_URL:-}
       AZURRA_LEADS_API_TOKEN: ${AZURRA_LEADS_API_TOKEN:-}
+      APIFY_API_TOKEN: ${APIFY_API_TOKEN:-}
+      APIFY_INSTAGRAM_SEARCH_ACTOR: ${APIFY_INSTAGRAM_SEARCH_ACTOR:-apify~instagram-search-scraper}
+      APIFY_INSTAGRAM_PROFILE_ACTOR: ${APIFY_INSTAGRAM_PROFILE_ACTOR:-apify~instagram-profile-scraper}
       CLOCK_ENGINE_MODE: ${CLOCK_ENGINE_MODE:-shadow}
       PROCESS_ROLE: web
     networks: [traefik_public]

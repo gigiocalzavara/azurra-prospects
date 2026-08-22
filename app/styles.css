@@ -82,6 +82,9 @@ select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px #56e39f20; }
 .execution-summary { display: grid; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
 .execution-summary strong { color: var(--brand); }
 .empty-state { margin-top: 18px; color: var(--muted); line-height: 1.55; }
+.integration-status { display: inline-flex; align-items: center; gap: 9px; color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .1em; }
+.integration-dot { width: 8px; height: 8px; border-radius: 50%; background: #c8766d; box-shadow: 0 0 12px #c8766d70; }
+.integration-dot.connected { background: var(--brand); box-shadow: 0 0 12px #56e39f80; }
 @media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; } .admin-shell { padding-top: 34px; } }
 @media (max-width: 800px) { .instagram-layout { grid-template-columns: 1fr; } }
 @media (max-width: 720px) { .workspace-metrics, .module-grid, .search-form { grid-template-columns: 1fr; } .organization-action .member-count { display: none; } .search-form .full-field { grid-column: auto; } }
