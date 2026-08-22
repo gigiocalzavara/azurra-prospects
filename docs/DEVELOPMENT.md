@@ -28,6 +28,12 @@ O carregamento inicial da area administrativa e agendado fora do corpo sincrono 
 
 Na fundacao inicial, os servicos de Clock Engine e worker ficam desativados no Portainer (`replicas: 0`). A imagem e as variaveis ja estao separadas, mas eles nao devem ser escalados antes da implementacao dos respectivos executores.
 
+## Pesquisa Instagram
+
+O modulo `/organizations/[slug]/instagram` registra pesquisas por nicho, localizacao, faixa de seguidores, limite e escopo de perfil. A RPC `create_instagram_prospect_job` valida a participacao na organizacao, grava um `prospect_job` com a regra `instagram-public-prospecting` versao 1 e produz evento de auditoria. Toda pesquisa nasce com `shadow_mode=true`; a estimativa e de um credito por resultado solicitado, mas nenhum lancamento e criado no livro-razao enquanto nao houver execucao ativa.
+
+O escopo `public_metadata` permite apenas metadados visiveis publicamente em perfis privados. A regra proibe acesso a conteudo privado, contorno de autenticacao ou qualquer tecnica destinada a superar restricoes do Instagram.
+
 ## Banco e seguranca
 
 O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.

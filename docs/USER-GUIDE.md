@@ -36,6 +36,8 @@ O produto esta em fundacao tecnica. Autenticacao e administracao inicial de orga
 5. Selecionar prospects para envio ao Azurra Leads.
 6. Consultar origem, regra aplicada e historico de creditos.
 
+O primeiro passo ja esta disponivel: abra a organizacao, clique em **Instagram**, informe nicho, localizacao, faixa de seguidores, tipo de perfil e quantidade desejada. O sistema mostra a estimativa maxima de creditos e registra a pesquisa em shadow mode. Nesta fase, o registro serve para validar criterios e auditoria; ainda nao executa coleta externa nem consome creditos.
+
 ## Perfis privados
 
 O sistema nao contorna privacidade nem acessa conteudo restrito. Um perfil privado pode ser registrado apenas com os metadados publicamente visiveis e nao deve ser tratado como fonte de conteudo privado.
