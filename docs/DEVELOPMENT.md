@@ -34,6 +34,8 @@ O modulo `/organizations/[slug]/instagram` registra pesquisas por nicho, localiz
 
 O escopo `public_metadata` permite apenas metadados visiveis publicamente em perfis privados. A regra proibe acesso a conteudo privado, contorno de autenticacao ou qualquer tecnica destinada a superar restricoes do Instagram.
 
+A migration `20260822000200_instagram_shadow_executor.sql` adiciona `prospect_jobs.output`, a tabela normalizada `prospect_results` e a RPC `run_instagram_shadow_job`. O executor shadow bloqueia trabalhos de outro canal ou modo, exige status `queued`, valida a versao da regra e grava o plano completo em `output`. A execucao termina como `completed`, produz auditoria e mantem `credit_effect=0`. O provedor fica identificado como `adapter_pending` ate a escolha e configuracao de uma fonte externa autorizada.
+
 ## Banco e seguranca
 
 O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.
