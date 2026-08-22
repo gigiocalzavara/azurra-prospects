@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/browser";
@@ -80,7 +81,9 @@ export default function OrganizationWorkspacePage() {
       </section>
 
       <section className="module-grid" aria-label="Módulos">
-        <article className="module-card"><div className="eyebrow">PRIMEIRO CANAL</div><h2>Instagram</h2><p>Pesquisas, critérios de qualificação e resultados de perfis públicos dentro das regras operacionais.</p><span className="module-status">PRÓXIMA ENTREGA</span></article>
+        <Link className="module-link" href={`/organizations/${organization.slug}/instagram` as Route}>
+          <article className="module-card"><div className="eyebrow">PRIMEIRO CANAL</div><h2>Instagram</h2><p>Pesquisas, critérios de qualificação e resultados de perfis públicos dentro das regras operacionais.</p><span className="module-status">ABRIR MÓDULO →</span></article>
+        </Link>
         <article className="module-card"><div className="eyebrow">OPERAÇÃO</div><h2>Pesquisas e prospects</h2><p>Acompanhe execuções, resultados encontrados e o envio selecionado para o Azurra Leads.</p><span className="module-status">EM PREPARAÇÃO</span></article>
         <article className="module-card"><div className="eyebrow">CONTROLE</div><h2>Créditos</h2><p>Saldo derivado do livro-razão, com reservas, consumos, liberações e estornos auditáveis.</p><span className="module-status">FUNDAÇÃO ATIVA</span></article>
         <article className="module-card"><div className="eyebrow">CONFORMIDADE</div><h2>Regras e transparência</h2><p>Rule Registry, shadow mode, origem dos dados e preparação da página de transparência da organização.</p><span className="module-status">SHADOW MODE</span></article>
