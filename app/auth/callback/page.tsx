@@ -12,16 +12,41 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const code = params.get("code");
-    const destination = params.get("next") === "/reset-password" ? "/reset-password" : "/admin";
-    if (!code) {
-      const failureTimer = window.setTimeout(() => setFailed(true), 0);
-      return () => window.clearTimeout(failureTimer);
-    }
+    const destination: "/reset-password" | "/admin" = params.get("next") === "/reset-password" ? "/reset-password" : "/admin";
     const supabase = createBrowserClient();
-    void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) setFailed(true);
-      else router.replace(destination);
+    let completed = false;
+
+    const finish = (target: "/reset-password" | "/admin") => {
+      if (completed) return;
+      completed = true;
+      router.replace(target);
+    };
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) return;
+      finish(event === "PASSWORD_RECOVERY" ? "/reset-password" : destination);
     });
+
+    if (code) {
+      void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setFailed(true);
+        else finish(destination);
+      });
+    } else {
+      void supabase.auth.getSession().then(({ data: sessionData, error }) => {
+        if (sessionData.session) finish(destination);
+        else if (error) setFailed(true);
+      });
+    }
+
+    const failureTimer = window.setTimeout(() => {
+      if (!completed) setFailed(true);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(failureTimer);
+      data.subscription.unsubscribe();
+    };
   }, [params, router]);
 
   return (
