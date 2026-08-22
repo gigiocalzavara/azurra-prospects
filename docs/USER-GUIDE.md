@@ -21,6 +21,8 @@ Se o Supabase recusar o envio, a tela informa um codigo de diagnostico. `over_em
 
 A nova organização e criada isoladamente e o superadmin que realizou a operacao se torna seu owner inicial. Identificadores nao podem ser repetidos.
 
+Para entrar em uma conta, clique no cartao da organizacao. O ambiente aberto mostra o resumo de creditos, pesquisas e membros, alem dos modulos planejados. Use **Organizações** no topo para retornar a administracao global.
+
 ## Estado atual
 
 O produto esta em fundacao tecnica. Autenticacao e administracao inicial de organizacoes estao disponiveis, mas nenhuma coleta real esta habilitada.
