@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/supabase/browser";
 
@@ -68,10 +70,15 @@ export default function AdminPage() {
         <div className="organization-list">
           <div className="section-heading"><h2>Contas da plataforma</h2><span>{organizations.length}</span></div>
           {organizations.map((organization) => (
-            <article className="organization-card" key={organization.id}>
-              <div><h3>{organization.name}</h3><p>/{organization.slug}</p></div>
-              <div className="member-count">{organization.member_count} membro(s)</div>
-            </article>
+            <Link className="organization-link" href={`/organizations/${organization.slug}` as Route} key={organization.id}>
+              <article className="organization-card">
+                <div><h3>{organization.name}</h3><p>/{organization.slug}</p></div>
+                <div className="organization-action">
+                  <span className="member-count">{organization.member_count} membro(s)</span>
+                  <span aria-hidden="true">→</span>
+                </div>
+              </article>
+            </Link>
           ))}
           {message && <div className="form-message">{message}</div>}
         </div>
