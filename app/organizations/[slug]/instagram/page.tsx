@@ -197,10 +197,28 @@ export default function InstagramPage() {
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ jobId: job.id }),
       });
-      const result = await response.json() as { resultCount?: number; creditsConsumed?: number; error?: string };
+      const result = await response.json() as { status?: string; error?: string };
       if (!response.ok) throw new Error(result.error ?? "execution_failed");
-      setMessage(`${result.resultCount ?? 0} perfis qualificados encontrados. ${result.creditsConsumed ?? 0} créditos consumidos.`);
-      setExpandedJobId(job.id);
+      setMessage("Pesquisa iniciada. Acompanhando o processamento...");
+      for (let attempt = 0; attempt < 72; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 5000));
+        const statusResponse = await fetch("/api/instagram/jobs/status", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: job.id }),
+        });
+        const statusResult = await statusResponse.json() as { status?: string; resultCount?: number; creditsConsumed?: number; error?: string };
+        if (statusResponse.status === 202) {
+          setMessage(`Pesquisa em processamento${attempt > 5 ? ". Você pode manter esta página aberta." : "..."}`);
+          continue;
+        }
+        if (!statusResponse.ok) throw new Error(statusResult.error ?? "execution_failed");
+        setMessage(`${statusResult.resultCount ?? 0} perfis qualificados encontrados. ${statusResult.creditsConsumed ?? 0} créditos consumidos.`);
+        setExpandedJobId(job.id);
+        await loadModule();
+        return;
+      }
+      setMessage("A pesquisa continua em processamento. Use Retomar acompanhamento dentro do histórico.");
       await loadModule();
     } catch {
       setMessage("Não foi possível concluir a pesquisa. Nenhum crédito foi consumido; você pode tentar novamente.");
@@ -251,7 +269,7 @@ export default function InstagramPage() {
             const jobResults = resultsByJob[job.id] ?? [];
             const isSimulation = job.status === "completed" && job.shadow_mode;
             const displayStatus = isSimulation ? "Simulação concluída" : (statusLabels[job.status] ?? job.status);
-            const canExecute = searchEngineStatus?.connected && (job.status === "queued" || isSimulation || job.status === "failed") && jobResults.length === 0;
+            const canExecute = searchEngineStatus?.connected && (job.status === "queued" || isSimulation || job.status === "failed" || job.status === "running") && jobResults.length === 0;
             return (
             <article className={`job-card ${expandedJobId === job.id ? "expanded" : ""}`} key={job.id}>
               <button className="job-card-header" type="button" onClick={() => setExpandedJobId(expandedJobId === job.id ? null : job.id)} aria-expanded={expandedJobId === job.id}>
@@ -268,7 +286,7 @@ export default function InstagramPage() {
                 </dl>
                 {isSimulation && <div className="execution-summary"><strong>Simulação concluída</strong><span>Os critérios foram validados, mas nenhum perfil foi coletado e nenhum crédito foi consumido.</span></div>}
                 {!job.shadow_mode && job.status === "completed" && <div className="execution-summary"><strong>Pesquisa concluída</strong><span>{jobResults.length} perfis qualificados foram salvos neste histórico.</span></div>}
-                {canExecute && <button className="primary-button job-action" onClick={() => void executeSearch(job)} disabled={executingJobId === job.id}>{executingJobId === job.id ? "Executando..." : "Executar pesquisa"}</button>}
+                {canExecute && <button className="primary-button job-action" onClick={() => void executeSearch(job)} disabled={executingJobId === job.id}>{executingJobId === job.id ? "Acompanhando..." : job.status === "running" ? "Retomar acompanhamento" : "Executar pesquisa"}</button>}
                 {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id || executingJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular sem coletar"}</button>}
                 {jobResults.length > 0 && <div className="prospect-results">
                   <h4>Perfis encontrados</h4>
