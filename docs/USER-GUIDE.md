@@ -48,6 +48,8 @@ Quando a pesquisa terminar, o proprio cartao exibe **Perfis encontrados** com no
 
 A pesquisa e executada em segundo plano. A tela acompanha o processamento automaticamente sem manter uma conexao longa. Se o navegador for fechado, a operacao continua; ao retornar, abra o historico e clique em **Retomar acompanhamento**. Pesquisas antigas interrompidas antes desta atualizacao tambem podem ser recuperadas por esse botao.
 
+Mensagens de processamento e falha aparecem dentro do proprio cartao da pesquisa, abaixo dos botoes. Em caso de falha, envie ao suporte somente o codigo operacional exibido; credenciais e tokens nunca devem ser compartilhados.
+
 No topo do modulo, **Motor de busca conectado** confirma que a infraestrutura de pesquisa esta disponivel. O sistema nunca exibe ao cliente o nome de fornecedores externos. Esse indicador nao significa que uma coleta foi iniciada: somente a confirmacao do botao **Executar pesquisa** inicia uma operacao real.
 
 ## Perfis privados
