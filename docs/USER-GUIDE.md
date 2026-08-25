@@ -46,6 +46,8 @@ Para realizar a coleta, abra a pesquisa e clique em **Executar pesquisa**. Antes
 
 Quando a pesquisa terminar, o proprio cartao exibe **Perfis encontrados** com nome, usuario, biografia, seguidores, categoria, localizacao e contatos publicos quando disponiveis. Use **Abrir Instagram** para consultar o perfil original. Uma simulacao aparece como **Simulacao concluida** e nao deve ser confundida com uma pesquisa real.
 
+A pesquisa e executada em segundo plano. A tela acompanha o processamento automaticamente sem manter uma conexao longa. Se o navegador for fechado, a operacao continua; ao retornar, abra o historico e clique em **Retomar acompanhamento**. Pesquisas antigas interrompidas antes desta atualizacao tambem podem ser recuperadas por esse botao.
+
 No topo do modulo, **Motor de busca conectado** confirma que a infraestrutura de pesquisa esta disponivel. O sistema nunca exibe ao cliente o nome de fornecedores externos. Esse indicador nao significa que uma coleta foi iniciada: somente a confirmacao do botao **Executar pesquisa** inicia uma operacao real.
 
 ## Perfis privados
