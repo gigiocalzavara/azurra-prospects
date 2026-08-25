@@ -36,13 +36,17 @@ O produto esta em fundacao tecnica. Autenticacao e administracao inicial de orga
 5. Selecionar prospects para envio ao Azurra Leads.
 6. Consultar origem, regra aplicada e historico de creditos.
 
-O primeiro passo ja esta disponivel: abra a organizacao, clique em **Instagram**, informe nicho, localizacao, faixa de seguidores, tipo de perfil e quantidade desejada. O sistema mostra a estimativa maxima de creditos e registra a pesquisa em shadow mode. Nesta fase, o registro serve para validar criterios e auditoria; ainda nao executa coleta externa nem consome creditos.
+Abra a organizacao, clique em **Instagram**, informe nicho, localizacao, faixa de seguidores, tipo de perfil e quantidade desejada. O limite atual e de 250 perfis por pesquisa. O sistema mostra a estimativa maxima e registra os criterios antes de qualquer consumo.
 
 O painel **Pesquisas recentes** e o historico da organizacao. Clique em **Ver detalhes** para consultar data, localizacao, faixa de seguidores, tipo de perfil, quantidade solicitada, estado da pesquisa e creditos consumidos. Os estados tecnicos sao apresentados em linguagem simples, sem expor fornecedores ou componentes internos.
 
 Uma pesquisa com status **Aguardando execucao** pode ser aberta e validada pelo botao **Simular execucao**. A simulacao valida a regra operacional, cria o plano de processamento e conclui o trabalho sem consultar fontes externas. O historico confirma que zero credito foi consumido.
 
-No topo do modulo, **Motor de busca conectado** confirma que a infraestrutura de pesquisa esta disponivel. O sistema nunca exibe ao cliente o nome de fornecedores externos. Esse indicador nao significa que uma coleta foi iniciada: enquanto o modulo estiver em modo de validacao, criar uma pesquisa apenas registra os criterios.
+Para realizar a coleta, abra a pesquisa e clique em **Executar pesquisa**. Antes de iniciar, o sistema confirma o limite maximo: um credito por perfil qualificado encontrado. A execucao respeita a quantidade solicitada, filtra a faixa de seguidores e o tipo de perfil, grava apenas dados publicamente visiveis e cobra somente os resultados qualificados efetivamente salvos.
+
+Quando a pesquisa terminar, o proprio cartao exibe **Perfis encontrados** com nome, usuario, biografia, seguidores, categoria, localizacao e contatos publicos quando disponiveis. Use **Abrir Instagram** para consultar o perfil original. Uma simulacao aparece como **Simulacao concluida** e nao deve ser confundida com uma pesquisa real.
+
+No topo do modulo, **Motor de busca conectado** confirma que a infraestrutura de pesquisa esta disponivel. O sistema nunca exibe ao cliente o nome de fornecedores externos. Esse indicador nao significa que uma coleta foi iniciada: somente a confirmacao do botao **Executar pesquisa** inicia uma operacao real.
 
 ## Perfis privados
 

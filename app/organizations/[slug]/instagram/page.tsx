@@ -17,12 +17,32 @@ type InstagramInput = {
 };
 type InstagramOutput = {
   decision?: string;
+  execution_mode?: string;
   estimated_results?: number;
   estimated_credits?: number;
+  collected_results?: number;
+  qualified_results?: number;
   credit_effect?: number;
   executed_at?: string;
 };
 type ProspectJob = { id: string; status: string; input: InstagramInput; output: InstagramOutput | null; shadow_mode: boolean; created_at: string };
+type ProspectResult = {
+  id: string;
+  job_id: string;
+  username: string;
+  display_name: string | null;
+  profile_url: string | null;
+  bio: string | null;
+  follower_count: number | null;
+  following_count: number | null;
+  is_private: boolean;
+  is_verified: boolean;
+  public_email: string | null;
+  public_phone: string | null;
+  public_website: string | null;
+  category: string | null;
+  location: string | null;
+};
 type SearchEngineStatus = { configured: boolean; connected: boolean; error?: string };
 
 const statusLabels: Record<string, string> = {
@@ -48,8 +68,10 @@ export default function InstagramPage() {
   const [message, setMessage] = useState("Carregando...");
   const [creating, setCreating] = useState(false);
   const [runningJobId, setRunningJobId] = useState<string | null>(null);
+  const [executingJobId, setExecutingJobId] = useState<string | null>(null);
   const [searchEngineStatus, setSearchEngineStatus] = useState<SearchEngineStatus | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [resultsByJob, setResultsByJob] = useState<Record<string, ProspectResult[]>>({});
 
   const loadModule = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -77,8 +99,25 @@ export default function InstagramPage() {
       .order("created_at", { ascending: false })
       .limit(10);
 
+    const loadedJobs = (jobData ?? []) as ProspectJob[];
+    const jobIds = loadedJobs.map((job) => job.id);
+    let resultData: ProspectResult[] = [];
+    if (jobIds.length > 0) {
+      const { data } = await supabase
+        .from("prospect_results")
+        .select("id,job_id,username,display_name,profile_url,bio,follower_count,following_count,is_private,is_verified,public_email,public_phone,public_website,category,location")
+        .in("job_id", jobIds)
+        .order("follower_count", { ascending: false, nullsFirst: false })
+        .limit(2500);
+      resultData = (data ?? []) as ProspectResult[];
+    }
+
     setOrganization(selectedOrganization as Organization);
-    setJobs((jobData ?? []) as ProspectJob[]);
+    setJobs(loadedJobs);
+    setResultsByJob(resultData.reduce<Record<string, ProspectResult[]>>((groups, result) => {
+      (groups[result.job_id] ??= []).push(result);
+      return groups;
+    }, {}));
     setMessage(jobError ? "Não foi possível carregar o histórico." : "");
   }, [router, slug, supabase]);
 
@@ -120,7 +159,7 @@ export default function InstagramPage() {
 
     setQuery("");
     setLocation("");
-    setMessage("Pesquisa registrada em shadow mode. Nenhum crédito foi consumido.");
+    setMessage("Pesquisa registrada. Revise a estimativa no histórico antes de executar.");
     await loadModule();
   }
 
@@ -137,6 +176,40 @@ export default function InstagramPage() {
     await loadModule();
   }
 
+  async function executeSearch(job: ProspectJob) {
+    const maximumCredits = Math.min(250, job.input.result_limit ?? 100);
+    const confirmed = window.confirm(`Executar esta pesquisa agora? O consumo será de 1 crédito por perfil qualificado encontrado, limitado a ${maximumCredits.toLocaleString("pt-BR")} créditos.`);
+    if (!confirmed) return;
+
+    setExecutingJobId(job.id);
+    setMessage("Executando pesquisa. Isso pode levar alguns minutos...");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      setExecutingJobId(null);
+      router.replace("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/instagram/jobs/execute", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: job.id }),
+      });
+      const result = await response.json() as { resultCount?: number; creditsConsumed?: number; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "execution_failed");
+      setMessage(`${result.resultCount ?? 0} perfis qualificados encontrados. ${result.creditsConsumed ?? 0} créditos consumidos.`);
+      setExpandedJobId(job.id);
+      await loadModule();
+    } catch {
+      setMessage("Não foi possível concluir a pesquisa. Nenhum crédito foi consumido; você pode tentar novamente.");
+      await loadModule();
+    } finally {
+      setExecutingJobId(null);
+    }
+  }
+
   const organizationHref = `/organizations/${slug}` as Route;
 
   return (
@@ -151,7 +224,7 @@ export default function InstagramPage() {
 
       <header className="workspace-hero">
         <h1>Nova pesquisa</h1>
-        <p>Defina o público que deseja encontrar. Nesta etapa, a pesquisa é registrada e auditada em shadow mode, sem iniciar uma execução paga.</p>
+        <p>Defina o público que deseja encontrar, revise a estimativa e execute somente quando estiver pronto. O consumo ocorre apenas pelos perfis qualificados encontrados.</p>
       </header>
 
       <section className="instagram-layout">
@@ -163,7 +236,7 @@ export default function InstagramPage() {
             <label>Tipo de perfil<select value={profileScope} onChange={(event) => setProfileScope(event.target.value)}><option value="public_only">Somente públicos</option><option value="public_metadata">Públicos + metadados visíveis de privados</option></select></label>
             <label>Mínimo de seguidores<input type="number" min="0" max="1000000000" value={minFollowers} onChange={(event) => setMinFollowers(Number(event.target.value))} /></label>
             <label>Máximo de seguidores<input type="number" min={Math.max(minFollowers, 1)} max="1000000000" value={maxFollowers} onChange={(event) => setMaxFollowers(event.target.value)} placeholder="Sem limite" /></label>
-            <label className="full-field">Quantidade desejada<input type="number" min="10" max="1000" step="10" value={resultLimit} onChange={(event) => setResultLimit(Number(event.target.value))} required /></label>
+            <label className="full-field">Quantidade desejada<input type="number" min="10" max="250" step="10" value={resultLimit} onChange={(event) => setResultLimit(Number(event.target.value))} required /></label>
             <div className="credit-preview"><span>Estimativa máxima</span><strong>{resultLimit.toLocaleString("pt-BR")} créditos</strong></div>
             <div className="policy-note">Perfis privados nunca terão conteúdo restrito acessado. Quando habilitado, o sistema poderá registrar somente nome, usuário, foto e outros metadados que o Instagram exiba publicamente.</div>
             <button className="primary-button full-field" disabled={creating || !organization}>{creating ? "Registrando..." : "Registrar pesquisa"}</button>
@@ -174,13 +247,18 @@ export default function InstagramPage() {
         <aside className="history-panel">
           <h2>Pesquisas recentes</h2>
           {jobs.length === 0 && <div className="empty-state">Nenhuma pesquisa registrada nesta organização.</div>}
-          {jobs.map((job) => (
+          {jobs.map((job) => {
+            const jobResults = resultsByJob[job.id] ?? [];
+            const isSimulation = job.status === "completed" && job.shadow_mode;
+            const displayStatus = isSimulation ? "Simulação concluída" : (statusLabels[job.status] ?? job.status);
+            const canExecute = searchEngineStatus?.connected && (job.status === "queued" || isSimulation || job.status === "failed") && jobResults.length === 0;
+            return (
             <article className={`job-card ${expandedJobId === job.id ? "expanded" : ""}`} key={job.id}>
               <button className="job-card-header" type="button" onClick={() => setExpandedJobId(expandedJobId === job.id ? null : job.id)} aria-expanded={expandedJobId === job.id}>
                 <span><strong>{job.input.query || "Pesquisa sem título"}</strong><small>{new Date(job.created_at).toLocaleString("pt-BR")}</small></span>
                 <span className="job-card-toggle">{expandedJobId === job.id ? "Ocultar" : "Ver detalhes"}</span>
               </button>
-              <div className="job-meta"><span>{statusLabels[job.status] ?? job.status}</span><span>{job.input.result_limit ?? 0} resultados solicitados</span></div>
+              <div className="job-meta"><span>{displayStatus}</span><span>{job.input.result_limit ?? 0} resultados solicitados</span>{jobResults.length > 0 && <span>{jobResults.length} encontrados</span>}</div>
               {expandedJobId === job.id && <div className="job-details">
                 <dl>
                   <div><dt>Localização</dt><dd>{job.input.location || "Qualquer localização"}</dd></div>
@@ -188,11 +266,26 @@ export default function InstagramPage() {
                   <div><dt>Perfis</dt><dd>{job.input.profile_scope === "public_metadata" ? "Públicos e metadados visíveis" : "Somente públicos"}</dd></div>
                   <div><dt>Créditos consumidos</dt><dd>{job.output?.credit_effect ?? 0}</dd></div>
                 </dl>
-                {job.output && <div className="execution-summary"><strong>Validação concluída</strong><span>O plano da pesquisa foi validado e está registrado no histórico.</span></div>}
-                {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular execução"}</button>}
+                {isSimulation && <div className="execution-summary"><strong>Simulação concluída</strong><span>Os critérios foram validados, mas nenhum perfil foi coletado e nenhum crédito foi consumido.</span></div>}
+                {!job.shadow_mode && job.status === "completed" && <div className="execution-summary"><strong>Pesquisa concluída</strong><span>{jobResults.length} perfis qualificados foram salvos neste histórico.</span></div>}
+                {canExecute && <button className="primary-button job-action" onClick={() => void executeSearch(job)} disabled={executingJobId === job.id}>{executingJobId === job.id ? "Executando..." : "Executar pesquisa"}</button>}
+                {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id || executingJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular sem coletar"}</button>}
+                {jobResults.length > 0 && <div className="prospect-results">
+                  <h4>Perfis encontrados</h4>
+                  {jobResults.map((result) => <article className="prospect-result" key={result.id}>
+                    <div className="prospect-avatar">{(result.display_name || result.username).slice(0, 1).toUpperCase()}</div>
+                    <div className="prospect-content">
+                      <div className="prospect-heading"><strong>{result.display_name || `@${result.username}`}</strong>{result.is_verified && <span>Verificado</span>}</div>
+                      <div className="prospect-username">@{result.username}{result.is_private ? " · Perfil privado" : ""}</div>
+                      {result.bio && <p>{result.bio}</p>}
+                      <div className="prospect-stats"><span>{result.follower_count?.toLocaleString("pt-BR") ?? "—"} seguidores</span>{result.category && <span>{result.category}</span>}{result.location && <span>{result.location}</span>}</div>
+                      <div className="prospect-links">{result.profile_url && <a href={result.profile_url} target="_blank" rel="noreferrer">Abrir Instagram</a>}{result.public_website && <a href={result.public_website} target="_blank" rel="noreferrer">Site público</a>}{result.public_email && <span>{result.public_email}</span>}{result.public_phone && <span>{result.public_phone}</span>}</div>
+                    </div>
+                  </article>)}
+                </div>}
               </div>}
             </article>
-          ))}
+          );})}
         </aside>
       </section>
     </main>
