@@ -35,7 +35,12 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as { jobId?: unknown };
   const jobId = typeof body.jobId === "string" ? body.jobId : "";
   if (!token || !jobId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const admin = createAdminClient();
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "server_configuration_error" }, { status: 500 });
+  }
   const { data: auth } = await admin.auth.getUser(token);
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { data: job } = await admin.from("prospect_jobs").select("id,organization_id,platform,status,input,output,shadow_mode").eq("id", jobId).maybeSingle();

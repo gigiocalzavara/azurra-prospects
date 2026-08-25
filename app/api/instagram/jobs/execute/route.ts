@@ -12,7 +12,13 @@ export async function POST(request: Request) {
   const jobId = typeof body.jobId === "string" ? body.jobId : "";
   if (!jobId) return NextResponse.json({ error: "invalid_request" }, { status: 400 });
 
-  const admin = createAdminClient();
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    console.error("instagram_search_server_configuration_error");
+    return NextResponse.json({ error: "execution_start_failed", diagnostic: "server_configuration_error" }, { status: 500 });
+  }
   const { data: auth } = await admin.auth.getUser(token);
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { data: job } = await admin.from("prospect_jobs").select("id,organization_id,platform,status,input,output").eq("id", jobId).maybeSingle();
@@ -43,8 +49,10 @@ export async function POST(request: Request) {
     }).eq("id", job.id);
     if (updateError) throw new Error("job_update_failed");
     return NextResponse.json({ success: true, status: "processing" }, { status: 202 });
-  } catch {
+  } catch (error) {
+    const diagnostic = error instanceof Error && /^[a-z0-9_]+$/.test(error.message) ? error.message : "execution_start_failed";
+    console.error("instagram_search_start_failed", diagnostic);
     await admin.from("prospect_jobs").update({ status: "failed", shadow_mode: false, finished_at: new Date().toISOString(), output: { execution_mode: "active", decision: "failed", credit_effect: 0 } }).eq("id", job.id);
-    return NextResponse.json({ error: "execution_start_failed" }, { status: 502 });
+    return NextResponse.json({ error: "execution_start_failed", diagnostic }, { status: 502 });
   }
 }
