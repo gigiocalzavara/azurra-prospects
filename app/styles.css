@@ -62,7 +62,7 @@ input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px #56e39f20; }
 .module-link .module-card { height: 100%; transition: transform .18s ease, border-color .18s ease; }
 .module-link:hover .module-card, .module-link:focus-visible .module-card { transform: translateY(-2px); border-color: var(--brand); }
 .module-link:focus-visible { outline: 3px solid #56e39f35; outline-offset: 3px; }
-.instagram-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; margin-top: 42px; }
+.instagram-layout { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 24px; margin-top: 42px; }
 .search-panel, .history-panel { padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
 .search-panel h2, .history-panel h2 { margin-top: 0; }
 .search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -96,6 +96,19 @@ select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px #56e39f20; }
 .job-details dl div { display: grid; gap: 4px; }
 .job-details dt { color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; }
 .job-details dd { margin: 0; color: var(--text); font-weight: 700; }
+.prospect-results { display: grid; gap: 12px; margin-top: 4px; }
+.prospect-results h4 { margin: 0 0 2px; font-size: 1rem; }
+.prospect-result { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #07110f; }
+.prospect-avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: #04110c; background: var(--brand); font-weight: 900; }
+.prospect-content { min-width: 0; display: grid; gap: 6px; }
+.prospect-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.prospect-heading span { color: var(--brand); font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+.prospect-username { color: var(--muted); font-size: .8rem; }
+.prospect-content p { margin: 2px 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+.prospect-stats, .prospect-links { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: .76rem; }
+.prospect-stats { color: var(--muted); }
+.prospect-links a { color: var(--brand); font-weight: 800; }
+.prospect-links span { color: var(--muted); overflow-wrap: anywhere; }
 @media (max-width: 640px) { .job-details dl { grid-template-columns: 1fr; } .job-card-header { align-items: center; } }
 @media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; } .admin-shell { padding-top: 34px; } }
 @media (max-width: 800px) { .instagram-layout { grid-template-columns: 1fr; } }

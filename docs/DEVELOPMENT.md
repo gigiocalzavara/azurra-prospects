@@ -44,6 +44,14 @@ O modulo exibe apenas **Motor de busca conectado/indisponivel**, enquanto o exec
 
 O historico e carregado de `prospect_jobs` e cada cartao pode ser expandido para exibir criterios e resumo da execucao. Campos internos como `provider`, nomes de adapters e o modo tecnico de execucao nunca devem ser renderizados para usuarios finais.
 
+## Execucao ativa do Instagram
+
+O endpoint autenticado `POST /api/instagram/jobs/execute` recebe apenas o `jobId` e exige o access token do usuario. O servidor valida usuario, organizacao e papel (`owner`, `admin` ou `operator`) antes de chamar o adaptador. A interface pede confirmacao imediata, informa o teto de creditos e nunca envia credenciais do provedor ao navegador.
+
+O adaptador executa pesquisa de usuarios com limite maximo de 250 itens, `maxItems` e teto monetario por run. Enriquecimento adicional fica desabilitado por padrao. A normalizacao aplica escopo publico, faixa de seguidores e minimizacao de dados antes de persistir em `prospect_results`. Apenas nome, usuario, URLs publicas, biografia, metricas, categoria, localizacao e contatos explicitamente publicos podem ser gravados.
+
+Cada perfil qualificado salvo consome um credito por meio de `credit_ledger`, usando chave idempotente por job. Falhas anteriores a liquidacao deixam `credit_effect=0`; se a liquidacao falhar depois da insercao, os resultados inseridos sao removidos de forma compensatoria. O job guarda somente contagens e estado generico no `output`, sem identificar fornecedor.
+
 ## Banco e seguranca
 
 O projeto Supabase e `laayrkwqvdwucwaipnma`. As migrations ficam em `supabase/migrations`. RLS fica habilitado desde a primeira migration e o acesso e limitado pela organizacao do usuario. A `service_role` existe apenas no servidor e nunca pode usar prefixo `NEXT_PUBLIC_`.
