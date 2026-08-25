@@ -72,6 +72,7 @@ export default function InstagramPage() {
   const [searchEngineStatus, setSearchEngineStatus] = useState<SearchEngineStatus | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [resultsByJob, setResultsByJob] = useState<Record<string, ProspectResult[]>>({});
+  const [jobMessages, setJobMessages] = useState<Record<string, string>>({});
 
   const loadModule = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -118,7 +119,8 @@ export default function InstagramPage() {
       (groups[result.job_id] ??= []).push(result);
       return groups;
     }, {}));
-    setMessage(jobError ? "Não foi possível carregar o histórico." : "");
+    if (jobError) setMessage("Não foi possível carregar o histórico.");
+    else setMessage((current) => current === "Carregando..." ? "" : current);
   }, [router, slug, supabase]);
 
   useEffect(() => {
@@ -182,6 +184,7 @@ export default function InstagramPage() {
     if (!confirmed) return;
 
     setExecutingJobId(job.id);
+    setJobMessages((current) => ({ ...current, [job.id]: "Iniciando pesquisa..." }));
     setMessage("Executando pesquisa. Isso pode levar alguns minutos...");
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData.session?.access_token;
@@ -199,6 +202,7 @@ export default function InstagramPage() {
       });
       const result = await response.json() as { status?: string; error?: string; diagnostic?: string };
       if (!response.ok) throw new Error(result.diagnostic ?? result.error ?? "execution_failed");
+      setJobMessages((current) => ({ ...current, [job.id]: "Pesquisa iniciada. Acompanhando o processamento..." }));
       setMessage("Pesquisa iniciada. Acompanhando o processamento...");
       for (let attempt = 0; attempt < 72; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 5000));
@@ -209,16 +213,19 @@ export default function InstagramPage() {
         });
         const statusResult = await statusResponse.json() as { status?: string; resultCount?: number; creditsConsumed?: number; error?: string };
         if (statusResponse.status === 202) {
+          setJobMessages((current) => ({ ...current, [job.id]: "Pesquisa em processamento..." }));
           setMessage(`Pesquisa em processamento${attempt > 5 ? ". Você pode manter esta página aberta." : "..."}`);
           continue;
         }
         if (!statusResponse.ok) throw new Error(statusResult.error ?? "execution_failed");
         setMessage(`${statusResult.resultCount ?? 0} perfis qualificados encontrados. ${statusResult.creditsConsumed ?? 0} créditos consumidos.`);
+        setJobMessages((current) => ({ ...current, [job.id]: `${statusResult.resultCount ?? 0} perfis qualificados encontrados.` }));
         setExpandedJobId(job.id);
         await loadModule();
         return;
       }
       setMessage("A pesquisa continua em processamento. Use Retomar acompanhamento dentro do histórico.");
+      setJobMessages((current) => ({ ...current, [job.id]: "A pesquisa continua em processamento. Use Retomar acompanhamento." }));
       await loadModule();
     } catch (error) {
       const diagnostic = error instanceof Error ? error.message : "execution_failed";
@@ -227,7 +234,9 @@ export default function InstagramPage() {
         search_engine_actor_not_found: "O executor de pesquisa configurado não foi encontrado.",
         server_configuration_error: "A configuração interna do servidor está incompleta.",
       };
-      setMessage(`${explanations[diagnostic] ?? "Não foi possível iniciar ou concluir a pesquisa."} Nenhum crédito foi consumido. Código: ${diagnostic}.`);
+      const diagnosticMessage = `${explanations[diagnostic] ?? "Não foi possível iniciar ou concluir a pesquisa."} Nenhum crédito foi consumido. Código: ${diagnostic}.`;
+      setMessage(diagnosticMessage);
+      setJobMessages((current) => ({ ...current, [job.id]: diagnosticMessage }));
       await loadModule();
     } finally {
       setExecutingJobId(null);
@@ -294,6 +303,7 @@ export default function InstagramPage() {
                 {!job.shadow_mode && job.status === "completed" && <div className="execution-summary"><strong>Pesquisa concluída</strong><span>{jobResults.length} perfis qualificados foram salvos neste histórico.</span></div>}
                 {canExecute && <button className="primary-button job-action" onClick={() => void executeSearch(job)} disabled={executingJobId === job.id}>{executingJobId === job.id ? "Acompanhando..." : job.status === "running" ? "Retomar acompanhamento" : "Executar pesquisa"}</button>}
                 {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id || executingJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular sem coletar"}</button>}
+                {jobMessages[job.id] && <div className="job-message" role="status">{jobMessages[job.id]}</div>}
                 {jobResults.length > 0 && <div className="prospect-results">
                   <h4>Perfis encontrados</h4>
                   {jobResults.map((result) => <article className="prospect-result" key={result.id}>

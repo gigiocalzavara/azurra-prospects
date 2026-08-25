@@ -79,6 +79,7 @@ select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px #56e39f20; }
 .job-meta span { padding: 5px 8px; border: 1px solid var(--line); border-radius: 999px; }
 .job-action { width: 100%; margin-top: 14px; }
 .job-action:disabled { opacity: .6; cursor: wait; }
+.job-message { padding: 12px 14px; border: 1px solid #56e39f55; border-radius: 10px; color: var(--muted); background: #56e39f0d; font-size: .82rem; line-height: 1.45; overflow-wrap: anywhere; }
 .execution-summary { display: grid; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
 .execution-summary strong { color: var(--brand); }
 .empty-state { margin-top: 18px; color: var(--muted); line-height: 1.55; }
