@@ -38,9 +38,11 @@ O produto esta em fundacao tecnica. Autenticacao e administracao inicial de orga
 
 O primeiro passo ja esta disponivel: abra a organizacao, clique em **Instagram**, informe nicho, localizacao, faixa de seguidores, tipo de perfil e quantidade desejada. O sistema mostra a estimativa maxima de creditos e registra a pesquisa em shadow mode. Nesta fase, o registro serve para validar criterios e auditoria; ainda nao executa coleta externa nem consome creditos.
 
-Uma pesquisa com status `queued` pode ser aberta pelo botao **Simular execucao**. A simulacao valida a regra operacional, cria o plano de processamento e conclui o trabalho sem consultar fontes externas. O historico passa a mostrar o provedor pendente e confirma que zero credito foi consumido.
+O painel **Pesquisas recentes** e o historico da organizacao. Clique em **Ver detalhes** para consultar data, localizacao, faixa de seguidores, tipo de perfil, quantidade solicitada, estado da pesquisa e creditos consumidos. Os estados tecnicos sao apresentados em linguagem simples, sem expor fornecedores ou componentes internos.
 
-No topo do modulo, **Apify conectada** confirma que a credencial do provedor foi validada pelo servidor. Esse indicador nao significa que uma coleta foi iniciada: enquanto o modulo estiver em shadow mode, criar uma pesquisa apenas registra os criterios.
+Uma pesquisa com status **Aguardando execucao** pode ser aberta e validada pelo botao **Simular execucao**. A simulacao valida a regra operacional, cria o plano de processamento e conclui o trabalho sem consultar fontes externas. O historico confirma que zero credito foi consumido.
+
+No topo do modulo, **Motor de busca conectado** confirma que a infraestrutura de pesquisa esta disponivel. O sistema nunca exibe ao cliente o nome de fornecedores externos. Esse indicador nao significa que uma coleta foi iniciada: enquanto o modulo estiver em modo de validacao, criar uma pesquisa apenas registra os criterios.
 
 ## Perfis privados
 
