@@ -17,14 +17,21 @@ type InstagramInput = {
 };
 type InstagramOutput = {
   decision?: string;
-  provider?: string;
   estimated_results?: number;
   estimated_credits?: number;
   credit_effect?: number;
   executed_at?: string;
 };
 type ProspectJob = { id: string; status: string; input: InstagramInput; output: InstagramOutput | null; shadow_mode: boolean; created_at: string };
-type ApifyStatus = { configured: boolean; connected: boolean; searchActor: string; error?: string };
+type SearchEngineStatus = { configured: boolean; connected: boolean; error?: string };
+
+const statusLabels: Record<string, string> = {
+  queued: "Aguardando execução",
+  running: "Em processamento",
+  completed: "Concluída",
+  failed: "Falhou",
+  cancelled: "Cancelada",
+};
 
 export default function InstagramPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -41,7 +48,8 @@ export default function InstagramPage() {
   const [message, setMessage] = useState("Carregando...");
   const [creating, setCreating] = useState(false);
   const [runningJobId, setRunningJobId] = useState<string | null>(null);
-  const [apifyStatus, setApifyStatus] = useState<ApifyStatus | null>(null);
+  const [searchEngineStatus, setSearchEngineStatus] = useState<SearchEngineStatus | null>(null);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
 
   const loadModule = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -81,10 +89,10 @@ export default function InstagramPage() {
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/system/integrations/apify", { cache: "no-store" })
+    void fetch("/api/system/integrations/search-engine", { cache: "no-store" })
       .then((response) => response.json())
-      .then((status: ApifyStatus) => { if (active) setApifyStatus(status); })
-      .catch(() => { if (active) setApifyStatus({ configured: false, connected: false, searchActor: "", error: "unavailable" }); });
+      .then((status: SearchEngineStatus) => { if (active) setSearchEngineStatus(status); })
+      .catch(() => { if (active) setSearchEngineStatus({ configured: false, connected: false, error: "unavailable" }); });
     return () => { active = false; };
   }, []);
 
@@ -136,8 +144,8 @@ export default function InstagramPage() {
       <div className="workspace-topbar">
         <Link className="workspace-back" href={organizationHref}>← {organization?.name ?? "Organização"}</Link>
         <div className="integration-status">
-          <span className={apifyStatus?.connected ? "integration-dot connected" : "integration-dot"} />
-          <span>{apifyStatus?.connected ? "APIFY CONECTADA" : "APIFY NÃO CONECTADA"}</span>
+          <span className={searchEngineStatus?.connected ? "integration-dot connected" : "integration-dot"} />
+          <span>{searchEngineStatus?.connected ? "MOTOR DE BUSCA CONECTADO" : "MOTOR DE BUSCA INDISPONÍVEL"}</span>
         </div>
       </div>
 
@@ -167,11 +175,22 @@ export default function InstagramPage() {
           <h2>Pesquisas recentes</h2>
           {jobs.length === 0 && <div className="empty-state">Nenhuma pesquisa registrada nesta organização.</div>}
           {jobs.map((job) => (
-            <article className="job-card" key={job.id}>
-              <h3>{job.input.query || "Pesquisa sem título"}</h3>
-              <div className="job-meta"><span>{job.status}</span><span>{job.shadow_mode ? "shadow" : "active"}</span><span>{job.input.result_limit ?? 0} resultados</span></div>
-              {job.output && <div className="execution-summary"><strong>Plano validado</strong><span>Provedor: {job.output.provider ?? "pendente"}</span><span>Créditos consumidos: {job.output.credit_effect ?? 0}</span></div>}
-              {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular execução"}</button>}
+            <article className={`job-card ${expandedJobId === job.id ? "expanded" : ""}`} key={job.id}>
+              <button className="job-card-header" type="button" onClick={() => setExpandedJobId(expandedJobId === job.id ? null : job.id)} aria-expanded={expandedJobId === job.id}>
+                <span><strong>{job.input.query || "Pesquisa sem título"}</strong><small>{new Date(job.created_at).toLocaleString("pt-BR")}</small></span>
+                <span className="job-card-toggle">{expandedJobId === job.id ? "Ocultar" : "Ver detalhes"}</span>
+              </button>
+              <div className="job-meta"><span>{statusLabels[job.status] ?? job.status}</span><span>{job.input.result_limit ?? 0} resultados solicitados</span></div>
+              {expandedJobId === job.id && <div className="job-details">
+                <dl>
+                  <div><dt>Localização</dt><dd>{job.input.location || "Qualquer localização"}</dd></div>
+                  <div><dt>Seguidores</dt><dd>{(job.input.min_followers ?? 0).toLocaleString("pt-BR")} a {job.input.max_followers?.toLocaleString("pt-BR") ?? "sem limite"}</dd></div>
+                  <div><dt>Perfis</dt><dd>{job.input.profile_scope === "public_metadata" ? "Públicos e metadados visíveis" : "Somente públicos"}</dd></div>
+                  <div><dt>Créditos consumidos</dt><dd>{job.output?.credit_effect ?? 0}</dd></div>
+                </dl>
+                {job.output && <div className="execution-summary"><strong>Validação concluída</strong><span>O plano da pesquisa foi validado e está registrado no histórico.</span></div>}
+                {job.status === "queued" && <button className="quiet-button job-action" onClick={() => void runShadow(job.id)} disabled={runningJobId === job.id}>{runningJobId === job.id ? "Simulando..." : "Simular execução"}</button>}
+              </div>}
             </article>
           ))}
         </aside>
