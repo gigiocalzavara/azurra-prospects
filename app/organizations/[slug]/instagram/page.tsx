@@ -197,8 +197,8 @@ export default function InstagramPage() {
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ jobId: job.id }),
       });
-      const result = await response.json() as { status?: string; error?: string };
-      if (!response.ok) throw new Error(result.error ?? "execution_failed");
+      const result = await response.json() as { status?: string; error?: string; diagnostic?: string };
+      if (!response.ok) throw new Error(result.diagnostic ?? result.error ?? "execution_failed");
       setMessage("Pesquisa iniciada. Acompanhando o processamento...");
       for (let attempt = 0; attempt < 72; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 5000));
@@ -220,8 +220,14 @@ export default function InstagramPage() {
       }
       setMessage("A pesquisa continua em processamento. Use Retomar acompanhamento dentro do histórico.");
       await loadModule();
-    } catch {
-      setMessage("Não foi possível concluir a pesquisa. Nenhum crédito foi consumido; você pode tentar novamente.");
+    } catch (error) {
+      const diagnostic = error instanceof Error ? error.message : "execution_failed";
+      const explanations: Record<string, string> = {
+        search_engine_authentication_failed: "A credencial do motor de busca precisa ser renovada.",
+        search_engine_actor_not_found: "O executor de pesquisa configurado não foi encontrado.",
+        server_configuration_error: "A configuração interna do servidor está incompleta.",
+      };
+      setMessage(`${explanations[diagnostic] ?? "Não foi possível iniciar ou concluir a pesquisa."} Nenhum crédito foi consumido. Código: ${diagnostic}.`);
       await loadModule();
     } finally {
       setExecutingJobId(null);

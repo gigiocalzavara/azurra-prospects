@@ -57,10 +57,8 @@ export async function startInstagramSearch(input: {
 
   const limit = Math.max(1, Math.min(250, input.limit));
   const search = [input.query, input.location].filter(Boolean).join(" ").trim();
-  const maximumCharge = Math.max(0.5, limit * 0.005).toFixed(2);
   const endpoint = new URL(`${APIFY_API_BASE}/actors/${config.searchActor}/runs`);
   endpoint.searchParams.set("maxItems", String(limit));
-  endpoint.searchParams.set("maxTotalChargeUsd", maximumCharge);
   endpoint.searchParams.set("waitForFinish", "0");
 
   const response = await fetch(endpoint, {
@@ -81,7 +79,10 @@ export async function startInstagramSearch(input: {
   });
 
   if (response.status === 401 || response.status === 403) throw new Error("search_engine_authentication_failed");
-  if (!response.ok) throw new Error("search_engine_execution_failed");
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { error?: { type?: string } } | null;
+    throw new Error(payload?.error?.type ? `search_engine_${payload.error.type.replaceAll("-", "_")}` : "search_engine_execution_failed");
+  }
   const payload = await response.json() as { data?: ExternalSearchRun };
   if (!payload.data?.id) throw new Error("search_engine_invalid_response");
   return payload.data;
