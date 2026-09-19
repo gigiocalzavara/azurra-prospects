@@ -6,6 +6,8 @@ services:
       NODE_ENV: production
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+      APIFY_API_TOKEN: ${APIFY_API_TOKEN:-}
+      APIFY_INSTAGRAM_CONTENT_ACTOR: ${APIFY_INSTAGRAM_CONTENT_ACTOR:-apify~instagram-api-scraper}
     networks: [traefik_public]
     deploy:
       replicas: 1
