@@ -25,6 +25,7 @@ export default function Dashboard(){
   const [aiTask,setAiTask]=useState("viral_reason");
   const [aiOutput,setAiOutput]=useState("");
   const [aiBusy,setAiBusy]=useState(false);
+  const [collectorStatus,setCollectorStatus]=useState("checking");
 
   async function load(){
     const client=supabase();
@@ -42,18 +43,66 @@ export default function Dashboard(){
     setProfiles((p.data||[]) as Profile[]); setContents((c.data||[]) as Content[]); setLoading(false);
   }
   useEffect(()=>{load()},[]);
+  useEffect(()=>{
+    fetch("/api/collect/status")
+      .then(r=>r.json())
+      .then(data=>setCollectorStatus(data?.status||"offline"))
+      .catch(()=>setCollectorStatus("offline"));
+  },[]);
 
   const filtered=useMemo(()=>{const q=query.toLowerCase().trim();if(!q)return contents;return contents.filter(i=>[i.caption,i.hook,i.platform,i.monitored_profiles?.username].filter(Boolean).join(" ").toLowerCase().includes(q))},[contents,query]);
   const views=contents.reduce((s,i)=>s+Number(i.views||0),0);
   const avg=contents.length?contents.reduce((s,i)=>s+Number(i.viral_score||0),0)/contents.length:0;
 
+  async function collectProfile(profile:Profile){
+    if(!workspace||profile.platform!=="instagram")return;
+    setNotice(`Coletando posts de @${profile.username}...`);
+    const response=await fetch("/api/collect/instagram",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:profile.username,limit:24})
+    });
+    const data=await response.json();
+    if(!response.ok){
+      setNotice(data?.error||"Não foi possível coletar o perfil.");
+      return;
+    }
+
+    const rows=(data.items||[]).map((item:Record<string,unknown>)=>({
+      ...item,
+      workspace_id:workspace.id,
+      monitored_profile_id:profile.id,
+      platform:"instagram"
+    }));
+
+    if(rows.length){
+      const {error}=await supabase().from("content_items").upsert(rows,{onConflict:"workspace_id,platform,external_id"});
+      if(error){setNotice(error.message);return}
+    }
+
+    await supabase().from("monitored_profiles").update({
+      avg_views:Number(data.avg_views||0),
+      engagement_rate:Number(data.engagement_rate||0),
+      last_collected_at:new Date().toISOString(),
+      status:"active"
+    }).eq("id",profile.id);
+
+    setNotice(`${data.count||0} conteúdos coletados de @${profile.username}.`);
+    await load();
+  }
+
   async function addProfile(e:FormEvent){
     e.preventDefault(); if(!workspace)return;
     const u=username.trim().replace(/^@/,""); if(!u)return;
     const base=platform==="instagram"?"https://instagram.com/":platform==="tiktok"?"https://tiktok.com/@":"https://youtube.com/@";
-    const {error}=await supabase().from("monitored_profiles").insert({workspace_id:workspace.id,platform,username:u,profile_url:base+u});
-    setNotice(error?error.message:"Perfil adicionado ao monitoramento.");
-    if(!error){setUsername("");await load()}
+    const {data:profile,error}=await supabase().from("monitored_profiles")
+      .upsert({workspace_id:workspace.id,platform,username:u,profile_url:base+u},{onConflict:"workspace_id,platform,username"})
+      .select("*").single();
+    if(error){setNotice(error.message);return}
+    setUsername("");
+    setNotice("Perfil adicionado ao monitoramento.");
+    if(platform==="instagram"&&profile) await collectProfile(profile as Profile);
+    else await load();
   }
 
   async function analyze(){
@@ -73,7 +122,7 @@ export default function Dashboard(){
       <div className="sidebar-bottom"><div className="workspace-chip"><span>Workspace</span><b>{workspace?.name||"Azurra Viral"}</b></div><button className="nav-item" onClick={signOut}>Sair</button></div>
     </aside>
     <section className="main-area">
-      <header className="topbar"><div><span className="eyebrow">AZURRA VIRAL</span><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1></div><div className="status-pill"><span/>Radar online</div></header>
+      <header className="topbar"><div><span className="eyebrow">AZURRA VIRAL</span><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1></div><div className="status-pill"><span/>{collectorStatus==="online"?"Coletor conectado":collectorStatus==="missing"?"Coletor sem chave":"Coletor offline"}</div></header>
 
       {tab==="overview"&&<div className="content-area">
         <section className="welcome-banner"><div><span className="eyebrow">INTELIGÊNCIA CRIATIVA</span><h2>Encontre sinais. Transforme em conteúdo.</h2><p>Monitore referências e destaque o que estiver fora da curva.</p></div><button className="primary-button compact" onClick={()=>setTab("monitor")}>+ Monitorar perfil</button></section>
@@ -85,7 +134,7 @@ export default function Dashboard(){
 
       {tab==="monitor"&&<div className="content-area two-columns">
         <section className="panel"><span className="eyebrow">NOVO PERFIL</span><h3>Adicionar monitoramento</h3><form className="stack-form" onSubmit={addProfile}><label>Plataforma<select value={platform} onChange={e=>setPlatform(e.target.value)}><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option></select></label><label>Usuário<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="@perfil" /></label>{notice&&<div className="form-message">{notice}</div>}<button className="primary-button">Adicionar perfil</button></form></section>
-        <section className="panel"><div className="panel-head"><h3>{profiles.length} perfis</h3></div>{profiles.length===0?<Empty/>:<div className="profile-list">{profiles.map(p=><article className="profile-row" key={p.id}><div className="avatar-fallback">{p.username.slice(0,2).toUpperCase()}</div><div className="grow"><b>@{p.username}</b><span>{p.platform}</span></div><Metric value={format(p.followers_count)} label="seguidores"/><Metric value={format(p.avg_views)} label="views média"/><span className="mini-status">{p.status}</span></article>)}</div>}</section>
+        <section className="panel"><div className="panel-head"><h3>{profiles.length} perfis</h3></div>{profiles.length===0?<Empty/>:<div className="profile-list">{profiles.map(p=><article className="profile-row" key={p.id}><div className="avatar-fallback">{p.username.slice(0,2).toUpperCase()}</div><div className="grow"><b>@{p.username}</b><span>{p.platform}</span></div><Metric value={format(p.followers_count)} label="seguidores"/><Metric value={format(p.avg_views)} label="views média"/><span className="mini-status">{p.status}</span>{p.platform==="instagram"&&<button className="ghost-button small" onClick={()=>collectProfile(p)}>Atualizar dados</button>}</article>)}</div>}</section>
       </div>}
 
       {tab==="library"&&<div className="content-area"><section className="panel"><span className="eyebrow">BIBLIOTECA</span><h3>Referências encontradas</h3><ContentGrid items={contents} onAnalyze={i=>{setAiInput(i.caption||i.hook||"");setTab("ai")}}/></section></div>}
