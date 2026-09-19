@@ -1,9 +1,3 @@
 import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  output: "standalone",
-  poweredByHeader: false,
-  typedRoutes: true,
-};
-
+const nextConfig: NextConfig = { output: "standalone" };
 export default nextConfig;

@@ -1,12 +1,5 @@
-node_modules/
-.next/
-out/
-coverage/
-*.log
+.next
+node_modules
 .env
-.env.*
-!.env.example
-!.env.production.example
-.DS_Store
-*.tsbuildinfo
-.supabase/
+.env.local
+*.log
